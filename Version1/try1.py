@@ -46,6 +46,8 @@ model = keras.Sequential(
     [
         keras.Input(shape=(maxlen, len(chars))),
         layers.LSTM(128),
+        # TODO: add dense layer here
+        #  after running it on a faster computer of a friend it appears to work well
         layers.Dense(len(chars), activation="softmax"),
     ]
 )
