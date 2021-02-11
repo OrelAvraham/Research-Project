@@ -1,33 +1,37 @@
-# Imports
+from pathlib import Path
+
 from tensorflow import keras
 from tensorflow.keras import layers
 
 import numpy as np
 import random
 import io
+import os
+import sys
+from datetime import datetime
 
-# Data Downloading and Processing
+print('Coirolanus RNN that learns by characters v.1')
 
-# -- Downloading and reading
-path = keras.utils.get_file(
-    "nietzsche.txt", origin="https://s3.amazonaws.com/text-datasets/nietzsche.txt")
+# Data downloading and processing
+path = keras.utils.get_file('shakespeare.txt',
+                            'https://storage.googleapis.com/download.tensorflow.org/data/shakespeare.txt')
 
 with io.open(path, encoding="utf-8") as f:
     text = f.read().lower()
-text = text.replace("\n", " ")  # removing newlines for easing the learning
-print("Corpus length:", len(text))
+print(f'Amount of Characters: {len(text)}')
 
-# -- Collecting the characters of the text and indexing them
-chars = sorted(list(set(text)))
-print("Total chars:", len(chars))
+chars = sorted(list(set(text)))  # saving all the unique chars of the text
+print(f'Amount of Unique Characters: {len(chars)}')
+
 char_indices = dict((c, i) for i, c in enumerate(chars))  # dictionary of char->idx
 indices_char = dict((i, c) for i, c in enumerate(chars))  # dictionary of idx->char
 
-# -- Dividing the data into sentences and the wanted optputs for them
-maxlen = 40
-step = 3
-sentences = []
-next_chars = []
+maxlen = 40  # a length of a sentence
+step = 3  # the distance (amount of chars) between 1 sentence and the next sentence we are taking
+sentences = []  # the list of the input sentences
+next_chars = []  # the list of the chars coming after those sentences
+
+# filling the lists with the data
 for i in range(0, len(text) - maxlen, step):
     sentences.append(text[i: i + maxlen])
     next_chars.append(text[i + maxlen])
@@ -46,8 +50,7 @@ model = keras.Sequential(
     [
         keras.Input(shape=(maxlen, len(chars))),
         layers.LSTM(128),
-        # TODO: add dense layer here
-        #  after running it on a faster computer of a friend it appears to work well
+        layers.Dense(32, activation="relu"),
         layers.Dense(len(chars), activation="softmax"),
     ]
 )
@@ -56,7 +59,9 @@ optimizer = keras.optimizers.RMSprop(learning_rate=0.01)
 model.compile(loss="categorical_crossentropy", optimizer=optimizer)
 
 
-# Training and testing
+# TODO: read more about recommended optimizers & loss functions for RNN text gen,
+#       these ones I saw was used in the internet.
+
 
 def sample(preds, temperature=1.0):
     # a function to sample the index of the letter to use from the prediction
@@ -78,27 +83,48 @@ def sample(preds, temperature=1.0):
     return np.argmax(probas)
 
 
-epochs = 40
-batch_size = 128
+input('\nPress Enter to start training\n')
 
-# -- Training the model for {epochs} epochs
+epochs = 40  # the amount of epochs to train
+batch_size = 128  # the batch size
+
+time = datetime.now().strftime("%d.%m.%Y.%H.%M.%S")
+curr_path = rf'{time}/'
+models_path = curr_path + 'models/'
+texts_path = curr_path + 'texts/'
+
+if os.path.exists(curr_path) or os.path.exists(models_path) or os.path.exists(texts_path):
+    sys.exit('---------------------------------\n' +
+             'on of the paths is not good\n' +
+             '---------------------------------')
+
+os.mkdir(Path(curr_path))
+os.mkdir(Path(models_path))
+os.mkdir(Path(texts_path))
+
+# The training loop: training the model for {epochs} epochs
 for epoch in range(epochs):
 
-    # --- Fitting it once
+    # fitting it once
     model.fit(x, y, batch_size=batch_size, epochs=1)
     print()
     print("Generating text after epoch: %d" % epoch)
 
     start_index = random.randint(0, len(text) - maxlen - 1)
 
-    # -- Going over some diversities(temperatures)
+    model_file_path = models_path + f'model_generation{epoch}'
+    text_file_path = texts_path + f'text_generation{epoch}.txt'
+
+    model.save(model_file_path)  # saving the model
+
+    # using different kinds of divercities
     for diversity in [0.2, 0.5, 1.0, 1.2]:
         print("...Diversity:", diversity)
 
         generated = ""
         sentence = text[start_index: start_index + maxlen]
-        seed = sentence # to keep track of the first sentence
-        print('...Sentence ' + sentence)
+        seed = sentence  # to keep track of the first sentence
+        print('...Seed: ' + sentence)
 
         # -- Generating 400 characters
         for i in range(400):
@@ -113,15 +139,12 @@ for epoch in range(epochs):
 
         print("...Generated: ", generated)
 
-        # -- Saving the generations of the model
-        path = rf'generations/epoch{epoch}.txt'
-        with open(path, 'a') as file:
-            content = f'================================\nDiversity: {diversity}\n'
+        with open(text_file_path, 'a') as file:
+            # I am using the append method because for each diversity i am appending the generated text
+            content = f'================================================================================================\nDiversity: {diversity}\n'
             content += f'Seed: {seed}\n'
-            content += f'Generated:\n' + generated[:100] + '\n' + generated[100:200] + '\n' + generated[200:300] + '\n' + generated[300:] + '\n'
-            content += '\n\n\n'
-            # print(f'========\n{text}\n========')
+            content += f'Generated:\n' + generated
+            content += '\n================================================================================================\n'
             file.write(content)
 
-        sentence = 'BUG BUG BUG'
         print()
