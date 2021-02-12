@@ -124,7 +124,7 @@ for epoch in range(epochs):
         generated = ""
         sentence = text[start_index: start_index + maxlen]
         seed = sentence  # to keep track of the first sentence
-        print('...Seed: ' + sentence)
+        print('...Seed:\n' + sentence)
 
         # -- Generating 400 characters
         for i in range(400):
@@ -137,7 +137,7 @@ for epoch in range(epochs):
             sentence = sentence[1:] + next_char
             generated += next_char
 
-        print("...Generated: ", generated)
+        print("\n...Generated:\n", generated)
 
         with open(text_file_path, 'a') as file:
             # I am using the append method because for each diversity i am appending the generated text

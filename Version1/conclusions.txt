@@ -1,0 +1,11 @@
+Data:
+The nietzsche data was not very organized.
+It was built from lost of nietzsche short stories and sayings h=what led the machine learn large amount of sentences
+that are not really related like ends of sayings combined with starts of completely other stories.
+
+One solution is try organize the data in a better way and slicing it so there won't be bad sentences to learn from.
+Another solution is using other dataset like one long text like a play.
+
+Model:
+There wasn't really a problem we so, the model worked pretty ok, adding a dense layer may make it learn deeper, maybe
+later even another rnn layer.
