@@ -1,0 +1,14 @@
+About after 10 epochs the model started to show nice results.
+The problem starts after that, as the epochs continued it started to predict texts like random combination of tabs and
+vowels or just long words of 20 characters with no meaning or structure of a word. I believe it might be the effect of
+over fitting. To solve these problems i thought of couple solutions (the order is from the shortest to implement to the
+ longest):
+
+ 1. To ease the learning I lowered the input text. Not lowering the text means adding 26 characters to the learning ABC
+ which are 67% of the starting ABC. Doing that may make the learning harder so the model won't start over fitting.
+
+2. Add another RNN layer for deep learning
+
+3. Generate words instead of characters (maybe think of syllables)
+
+ * Just process the data better (The nietzsche data wasn't processed very well mor info in it's conclusions).
