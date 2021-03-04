@@ -97,7 +97,7 @@ for epoch in range(epochs):
 
         generated = ""
         sentence = text[start_index: start_index + maxlen]
-        seed = sentence # to keep track of the first sentence
+        seed = sentence  # to keep track of the first sentence
         print('...Sentence ' + sentence)
 
         # -- Generating 400 characters
